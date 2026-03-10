@@ -16,6 +16,14 @@ export type TripStatus =
 
 export type PriceMode = "route" | "manual";
 
+export interface PagedData<T> {
+  totalPages: number;
+  pageSize: number;
+  page: number;
+  size: number;
+  items: T[];
+}
+
 export interface Trip {
   id: string;
   driver: string;
@@ -49,27 +57,24 @@ export interface Trip {
 
 export interface Vehicle {
   id: string;
-  plate: string;
-  type: string;
-  driver: string;
-  driverId: string | null;
+  registrationNumber: string;
+  assignedDriverId: string | null;
   status: "On Trip" | "Available" | "Maintenance";
-  odometer: number;
-  fuel: string;
-  year: number;
+  odometerKm: number;
+  fuelType: string;
+  manufactureYear: number;
   make: string;
   model: string;
 }
 
 export interface Driver {
   id: string;
-  name: string;
+  fullName: string;
   phone: string;
-  license: string;
-  trips: number;
+  licenseNumber: string;
   rating: number;
   status: "On Trip" | "Available";
-  joined: string;
+  tripCount: string;
   perDiem: number;
 }
 
@@ -123,26 +128,41 @@ export interface Expense {
 
 export type UserRole = "super_admin" | "admin" | "customer";
 
-export interface AdminUser {
-  role: "super_admin" | "admin";
+// export interface AdminUser {
+//   role: "super_admin" | "admin";
+//   fullName: string;
+//   id: null;
+//   phone: string;
+// }
+
+// export interface CustomerUser {
+//   role: "customer";
+//   name: string;
+//   company: string;
+//   customerId: string;
+//   phone: string;
+// }
+
+export interface UserAccount {
+  id: string;
   fullName: string;
-  id: null;
+  lastLoginAt: string;
+  status: string;
   phone: string;
+  role: User0Role;
 }
 
-export interface CustomerUser {
-  role: "customer";
-  name: string;
-  company: string;
-  customerId: string;
-  phone: string;
+export interface User0Role {
+  id: string;
+  description: string;
+  name: UserRole;
 }
 
-export type AppUser = AdminUser | CustomerUser;
+// export type AppUser = AdminUser | CustomerUser;
 
 export interface Session {
   role: UserRole;
-  user: AppUser;
+  user: UserAccount;
 }
 
 // ─── UI Helper Types ──────────────────────────────────────────────────────────

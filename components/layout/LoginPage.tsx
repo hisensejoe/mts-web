@@ -4,12 +4,13 @@ import { useState, useRef } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { tx, inputStyle } from "@/lib/utils";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import type { AppUser, UserRole } from "@/types";
+import type { UserAccount, UserRole } from "@/types";
 import axiosInstance from "@/lib/axios";
 import { AxiosError } from "axios";
+import { verify } from "crypto";
 
 interface LoginPageProps {
-  onAuth: (accessToken: string, user: AppUser) => void;
+  onAuth: (accessToken: string, role: UserRole, user: UserAccount) => void;
 }
 
 type Stage = "role" | "phone" | "otp" | "pin";
@@ -64,7 +65,7 @@ export default function LoginPage({ onAuth }: LoginPageProps) {
       const response = await axiosInstance.post<any>('/api/v1/auth/verify-otp', { phone: formattedPhone, otp });
       console.log("OTP verification response:", response.data); // log full response for debugging
       const { accessToken, user } = response.data; // assuming response contains user object with role and other details
-      onAuth(accessToken, user);
+      onAuth(accessToken, user.role, user); 
       // setStage("pin");
     } catch (err) {
       let errorMessage = "OTP verification failed. Please try again.";
@@ -89,7 +90,7 @@ export default function LoginPage({ onAuth }: LoginPageProps) {
 
   const handleOtpKey = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && !otp[i] && i > 0) refs.current[i - 1]?.focus();
-    if (e.key === "Enter" && otp.join("").length === 6) sim(() => setStage("pin"));
+    if (e.key === "Enter" && otp.join("").length === 6) handleVerifyOtp(otp.join(""));
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {

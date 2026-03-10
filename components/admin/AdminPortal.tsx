@@ -12,14 +12,14 @@ import NewExpenseForm from "@/components/forms/NewExpenseForm";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminTrips from "@/components/admin/AdminTrips";
 import {
-  AdminVehicles,
-  AdminDrivers,
-  AdminCustomers,
   AdminExpenses,
-  AdminRoutes,
   AdminUsers,
 } from "@/components/admin/AdminPages";
 import type { Trip, Expense } from "@/types";
+import { AdminDrivers } from "./pages/AdminDrivers";
+import { AdminVehicles } from "./pages/AdminVehicles";
+import { AdminRoutes } from "./pages/AdminRoutes";
+import { AdminCustomers } from "./pages/AdminCustomers";
 
 type ModalKind = "trip" | "expense" | null;
 

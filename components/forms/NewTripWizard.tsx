@@ -7,8 +7,6 @@ import { genId, genWB, genBK, today, nowT, routePrice } from "@/lib/utils";
 import {
   MOCK_ROUTES,
   MOCK_CUSTOMERS,
-  MOCK_DRIVERS,
-  MOCK_VEHICLES,
 } from "@/lib/data";
 import { CONTAINER_TYPES, PICKUP_POINTS } from "@/lib/constants";
 import {
@@ -20,7 +18,7 @@ import Divider from "@/components/ui/Divider";
 import SectionHead from "@/components/ui/SectionHead";
 import InfoBox from "@/components/ui/InfoBox";
 import Badge from "@/components/ui/Badge";
-import type { Trip } from "@/types";
+import type { Driver, Trip, Vehicle } from "@/types";
 
 interface NewTripWizardProps {
   onSave: (trip: Trip) => void;
@@ -63,21 +61,23 @@ export default function NewTripWizard({ onSave, onClose }: NewTripWizardProps) {
   const [recName, setRecName] = useState("");
   const [recPhone, setRecPhone] = useState("");
   const [delivNotes, setDelivNotes] = useState("");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [drivers, setDrivers] = useState<Driver[]>([]);
 
   const selRoute   = MOCK_ROUTES.find((r) => r.id === routeId);
-  const selVehicle = MOCK_VEHICLES.find((v) => v.id === vehicleId);
+  const selVehicle = vehicles.find((v) => v.id === vehicleId);
   const selCustomer= MOCK_CUSTOMERS.find((c) => c.id === custId);
   const selDriver  =
-    MOCK_DRIVERS.find((d) => d.id === driverId) ??
-    (selVehicle ? MOCK_DRIVERS.find((d) => d.id === selVehicle.driverId) : undefined);
+    drivers.find((d) => d.id === driverId) ??
+    (selVehicle ? drivers.find((d) => d.id === selVehicle.id) : undefined);
 
   const rPrice = selRoute ? routePrice(selRoute, cType) : 0;
   const finalPrice = priceMode === "route" ? rPrice : parseFloat(manualPrice || "0");
 
   const handleVehicle = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setVehicleId(e.target.value);
-    const v = MOCK_VEHICLES.find((x) => x.id === e.target.value);
-    if (v?.driverId && !driverId) setDriverId(v.driverId);
+    const v = vehicles.find((x) => x.id === e.target.value);
+    if (v?.id && !driverId) setDriverId(v.id);
   };
 
   const can = [
@@ -90,9 +90,9 @@ export default function NewTripWizard({ onSave, onClose }: NewTripWizardProps) {
   const handleSave = () => {
     const trip: Trip = {
       id: genId("TRP"),
-      driver: selDriver?.name ?? "",
+      driver: selDriver?.fullName ?? "",
       driverId: selDriver?.id ?? null,
-      vehicle: selVehicle?.plate ?? "",
+      vehicle: selVehicle?.registrationNumber ?? "",
       vehicleId,
       route: selRoute ? `${selRoute.from} → ${selRoute.to}` : "",
       routeId,
@@ -386,9 +386,9 @@ export default function NewTripWizard({ onSave, onClose }: NewTripWizardProps) {
             req
             value={vehicleId}
             onChange={handleVehicle}
-            options={MOCK_VEHICLES.map((v) => ({
+            options={vehicles.map((v) => ({
               value: v.id,
-              label: `${v.plate} – ${v.type} (${v.status})`,
+              label: `${v.registrationNumber} (${v.status})`,
             }))}
           />
           {selVehicle && (
@@ -402,13 +402,13 @@ export default function NewTripWizard({ onSave, onClose }: NewTripWizardProps) {
               <div style={{ color: tx(dark).muted }}>
                 Make:{" "}
                 <strong style={{ color: dark ? "#fff" : "#0f172a" }}>
-                  {selVehicle.year} {selVehicle.make} {selVehicle.model}
+                  {selVehicle.manufactureYear} {selVehicle.make} {selVehicle.model}
                 </strong>
               </div>
               <div style={{ color: tx(dark).muted }}>
                 Odometer:{" "}
                 <span className="font-mono font-semibold">
-                  {selVehicle.odometer.toLocaleString()} km
+                  {selVehicle.odometerKm} km
                 </span>
               </div>
             </div>
@@ -418,9 +418,9 @@ export default function NewTripWizard({ onSave, onClose }: NewTripWizardProps) {
             hint="Auto-filled from vehicle default"
             value={driverId}
             onChange={(e) => setDriverId(e.target.value)}
-            options={MOCK_DRIVERS.map((d) => ({
+            options={drivers.map((d) => ({
               value: d.id,
-              label: `${d.name} – ${d.status} (★${d.rating})`,
+              label: `${d.fullName} – ${d.status} (★${d.rating})`,
             }))}
           />
           {selDriver && (
@@ -432,7 +432,7 @@ export default function NewTripWizard({ onSave, onClose }: NewTripWizardProps) {
               className="rounded-xl p-3 flex items-center justify-between text-xs"
             >
               <div style={{ color: tx(dark).muted }}>
-                License: <span className="font-mono">{selDriver.license}</span> · Per diem:{" "}
+                License: <span className="font-mono">{selDriver.licenseNumber}</span> · Per diem:{" "}
                 <span className="text-emerald-500 font-bold">₵{selDriver.perDiem}/day</span>
               </div>
               <Badge status={selDriver.status} />
@@ -512,8 +512,8 @@ export default function NewTripWizard({ onSave, onClose }: NewTripWizardProps) {
                 ["Route", selRoute ? `${selRoute.from} → ${selRoute.to}` : "—"],
                 ["Cargo", cType === "Other (specify)" ? cOther : cType || "—"],
                 ["Weight", weight ? `${weight} t` : "—"],
-                ["Driver", selDriver?.name ?? "—"],
-                ["Vehicle", selVehicle?.plate ?? "—"],
+                ["Driver", selDriver?.fullName ?? "—"],
+                ["Vehicle", selVehicle?.registrationNumber ?? "—"],
                 ["Delivery Cost", finalPrice ? `₵${finalPrice.toLocaleString()}${priceMode === "manual" ? " (manual)" : ""}` : "—"],
                 ["Waybill", waybill],
                 ["Booking Ref", booking],

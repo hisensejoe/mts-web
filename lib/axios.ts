@@ -4,6 +4,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import camelcaseKeys from "camelcase-keys";
+import { get } from "http";
 import Cookie from "js-cookie";
 
 const baseURL: string = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -118,6 +119,16 @@ export const clearAuthTokens = (): void => {
     Cookie.remove("refreshToken", { path: "/" });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {}
+};
+
+export const getAuthTokens = (): { accessToken: string | undefined; refreshToken: string | undefined } => {
+  try {
+    const accessToken = Cookie.get("accessToken");
+    const refreshToken = Cookie.get("refreshToken");
+    return { accessToken, refreshToken };
+  } catch (error) {
+    return { accessToken: undefined, refreshToken: undefined };
+  }
 };
 
 export default axiosInstance;

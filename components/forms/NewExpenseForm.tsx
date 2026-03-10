@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { tx, genId, today, nowT } from "@/lib/utils";
-import { MOCK_VEHICLES, MOCK_DRIVERS, INITIAL_TRIPS } from "@/lib/data";
+import { INITIAL_TRIPS } from "@/lib/data";
 import { EXPENSE_TYPES, FUEL_STATIONS, WITNESS_OPTIONS } from "@/lib/constants";
 import { FieldInput, FieldSelect, FieldTextarea, FieldLabel } from "@/components/ui/FormFields";
 import Divider from "@/components/ui/Divider";
 import SectionHead from "@/components/ui/SectionHead";
 import InfoBox from "@/components/ui/InfoBox";
-import type { Expense, Trip } from "@/types";
+import type { Driver, Expense, PagedData, Trip, Vehicle } from "@/types";
+import axiosInstance from "@/lib/axios";
 
 interface NewExpenseFormProps {
   onSave: (expense: Expense) => void;
@@ -21,6 +22,10 @@ export default function NewExpenseForm({ onSave, onClose, trips }: NewExpenseFor
   const { dark } = useTheme();
   const [saved, setSaved] = useState(false);
 
+  const [loadingVehicles, setLoadingVehicles] = useState(false);
+  const [loadingDrivers, setLoadingDrivers] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicleId, setVehicleId] = useState("");
   const [driverId, setDriverId] = useState("");
   const [tripId, setTripId] = useState("");
@@ -38,10 +43,49 @@ export default function NewExpenseForm({ onSave, onClose, trips }: NewExpenseFor
   const [gps, setGps] = useState(false);
   const [notes, setNotes] = useState("");
 
-  const selV = MOCK_VEHICLES.find((v) => v.id === vehicleId);
-  const effD =
-    MOCK_DRIVERS.find((d) => d.id === driverId) ??
-    (selV ? MOCK_DRIVERS.find((d) => d.id === selV.driverId) : undefined);
+
+  // get vehicles list from api call /api/v1/vehicles
+  const fetchVehicles = async () => {
+    try {
+      setLoadingVehicles(true);
+      const res = await axiosInstance.get<PagedData<Vehicle>>("/api/v1/vehicles");
+      const vehicles = res.data.items;
+      console.log("API response for vehicles:", res.data);
+      console.log("Fetched vehicles:", vehicles);
+      setVehicles(vehicles ?? []);
+    } catch (error) {
+      setVehicles([]); // Clear drivers on error
+      console.error("Error fetching vehicles:", error);
+    } finally {
+      setLoadingVehicles(false);
+    }
+  };
+
+  // get all drivers from api call /api/v1/drivers
+  const fetchDrivers = async () => {
+    try {
+      setLoadingDrivers(true);
+      const res = await axiosInstance.get<{ items: Driver[] }>(
+        "/api/v1/drivers",
+      );
+      setDrivers(res.data.items ?? []);
+    } catch (error) {
+      setDrivers([]); // Clear drivers on error
+      console.error("Error fetching drivers:", error);
+    } finally {
+      setLoadingDrivers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVehicles();
+    fetchDrivers();
+  }, []);
+
+  // const selV = MOCK_VEHICLES.find((v) => v.id === vehicleId);
+  // const effD =
+  //   MOCK_DRIVERS.find((d) => d.id === driverId) ??
+  //   (selV ? MOCK_DRIVERS.find((d) => d.id === selV.driverId) : undefined);
 
   const isFuel = expType === "Fuel";
   const calcAmt =
@@ -57,9 +101,9 @@ export default function NewExpenseForm({ onSave, onClose, trips }: NewExpenseFor
 
   const handleVehicle = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setVehicleId(e.target.value);
-    const v = MOCK_VEHICLES.find((x) => x.id === e.target.value);
-    if (v?.driverId) setDriverId(v.driverId);
-    if (v) setOdometer(String(v.odometer));
+    const v = vehicles.find((x) => x.id === e.target.value);
+    if (v?.id) setDriverId(v.id);
+    if (v) setOdometer(String(v.odometerKm));
   };
 
   const canSave = !!(vehicleId && expType && date && receipt && (amount || calcAmt));
@@ -69,9 +113,9 @@ export default function NewExpenseForm({ onSave, onClose, trips }: NewExpenseFor
       id: genId("EXP"),
       type: expType,
       vehicleId,
-      vehicle: selV?.plate ?? "",
-      driverId: effD?.id ?? null,
-      driver: effD?.name ?? "—",
+      vehicle:  "",
+      driverId:  null,
+      driver: "—",
       tripId: tripId || null,
       amount: parseFloat(amount || calcAmt),
       date,
@@ -118,18 +162,18 @@ export default function NewExpenseForm({ onSave, onClose, trips }: NewExpenseFor
           req
           value={vehicleId}
           onChange={handleVehicle}
-          options={MOCK_VEHICLES.map((v) => ({ value: v.id, label: `${v.plate} – ${v.type}` }))}
+          options={vehicles.map((v) => ({ value: v.id, label: `${v.registrationNumber} – ${v.fuelType}` }))}
         />
         <FieldSelect
           label="Driver"
           hint="Auto from vehicle"
           value={driverId}
           onChange={(e) => setDriverId(e.target.value)}
-          options={MOCK_DRIVERS.map((d) => ({ value: d.id, label: d.name }))}
+          options={drivers.map((d) => ({ value: d.id, label: d.fullName }))}
         />
       </div>
 
-      {effD && (
+      {/* {effD && (
         <div
           style={{
             background: dark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
@@ -149,7 +193,7 @@ export default function NewExpenseForm({ onSave, onClose, trips }: NewExpenseFor
             {effD.rating}
           </div>
         </div>
-      )}
+      )} */}
 
       <FieldSelect
         label="Link to Trip"
@@ -263,7 +307,7 @@ export default function NewExpenseForm({ onSave, onClose, trips }: NewExpenseFor
           req={isFuel}
           prefix="km"
           type="number"
-          placeholder={selV?.odometer.toLocaleString() ?? "0"}
+          placeholder={"0"}
           value={odometer}
           onChange={(e) => setOdometer(e.target.value)}
         />

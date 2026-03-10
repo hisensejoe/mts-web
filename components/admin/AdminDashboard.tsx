@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { cardBg, tx } from "@/lib/utils";
-import { MOCK_VEHICLES } from "@/lib/data";
 import TripProgress from "@/components/ui/TripProgress";
 import Badge from "@/components/ui/Badge";
-import type { Trip } from "@/types";
+import type { Trip, Vehicle } from "@/types";
 
 interface AdminDashboardProps {
   trips: Trip[];
@@ -18,11 +17,12 @@ const PERIODS = ["daily", "weekly", "monthly", "yearly"] as const;
 export default function AdminDashboard({ trips, onNewTrip }: AdminDashboardProps) {
   const { dark } = useTheme();
   const [period, setPeriod] = useState<(typeof PERIODS)[number]>("monthly");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
   const stats = [
     { label: "Total Trips",  value: trips.length,                                                                   icon: "🗺",  c: "from-amber-500 to-orange-500"  },
     { label: "Active",       value: trips.filter((t) => t.status !== "Cancelled" && t.status !== "Back at Base").length, icon: "🚛",  c: "from-blue-500 to-cyan-500"     },
-    { label: "Fleet",        value: MOCK_VEHICLES.length,                                                            icon: "🚚",  c: "from-purple-500 to-pink-500"   },
+    { label: "Fleet",        value: vehicles.length,                                                            icon: "🚚",  c: "from-purple-500 to-pink-500"   },
     { label: "Revenue",      value: "₵84,200",                                                                       icon: "💰",  c: "from-yellow-500 to-amber-500"  },
     { label: "Expenses",     value: "₵18,450",                                                                       icon: "💳",  c: "from-red-500 to-rose-500"      },
     { label: "Cancelled",    value: trips.filter((t) => t.status === "Cancelled").length,                            icon: "🚫",  c: "from-slate-500 to-slate-600"   },

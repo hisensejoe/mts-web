@@ -1,6 +1,10 @@
 "use client";
 
-import { InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import {
+  InputHTMLAttributes,
+  SelectHTMLAttributes,
+  TextareaHTMLAttributes,
+} from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { tx, inputStyle } from "@/lib/utils";
 
@@ -81,7 +85,10 @@ export function FieldInput({
 
 type SelectOption = string | { value: string; label: string };
 
-interface FieldSelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "children"> {
+interface FieldSelectProps extends Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  "children"
+> {
   label?: string;
   req?: boolean;
   hint?: string;
@@ -96,29 +103,40 @@ export function FieldSelect({
   hint,
   options = [],
   placeholder,
+  loading = false,
   className = "",
   ...rest
-}: FieldSelectProps) {
+}: FieldSelectProps & { loading?: boolean }) {
   const { dark } = useTheme();
+
   return (
     <div className={className}>
       {label && <FieldLabel label={label} req={req} hint={hint} />}
+
       <select
         {...rest}
-        className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 appearance-none cursor-pointer"
+        disabled={loading || rest.disabled}
+        className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         style={inputStyle(dark)}
       >
-        <option value="">{placeholder ?? `Select ${label ?? ""}…`}</option>
-        {options.map((o) =>
-          typeof o === "string" ? (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ) : (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          )
+        {loading ? (
+          <option>Loading...</option>
+        ) : (
+          <>
+            <option value="">{placeholder ?? `Select ${label ?? ""}…`}</option>
+
+            {options.map((o) =>
+              typeof o === "string" ? (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ) : (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ),
+            )}
+          </>
         )}
       </select>
     </div>

@@ -5,8 +5,6 @@ import type {
   Vehicle,
   Trip,
   Expense,
-  AdminUser,
-  CustomerUser,
 } from "@/types";
 
 export const MOCK_ROUTES: Route[] = [
@@ -26,24 +24,19 @@ export const MOCK_CUSTOMERS: Customer[] = [
   { id: "CUST-005", name: "Meridian Port Services", contact: "Sylvia Asante",     phone: "+233-30-220-1800", email: "logistics@meridianport.com", trips: 38, totalValue: 98700  },
 ];
 
-export const MOCK_DRIVERS: Driver[] = [
-  { id: "DR-001", name: "Kwame Mensah",  phone: "+233-24-123-4567", license: "GH-DL-2019-4521", trips: 142, rating: 4.8, status: "On Trip",  joined: "2019-03-15", perDiem: 250 },
-  { id: "DR-002", name: "Kofi Boateng",  phone: "+233-20-987-6543", license: "GH-DL-2020-8832", trips: 98,  rating: 4.6, status: "On Trip",  joined: "2020-07-22", perDiem: 250 },
-  { id: "DR-003", name: "Yaw Asante",    phone: "+233-26-456-7890", license: "GH-DL-2018-3310", trips: 201, rating: 4.9, status: "Available",joined: "2018-11-01", perDiem: 300 },
-  { id: "DR-004", name: "Ama Serwaa",    phone: "+233-24-321-0987", license: "GH-DL-2021-6654", trips: 67,  rating: 4.7, status: "On Trip",  joined: "2021-01-10", perDiem: 250 },
-  { id: "DR-005", name: "Kojo Frimpong", phone: "+233-20-654-3210", license: "GH-DL-2017-9981", trips: 289, rating: 4.5, status: "On Trip",  joined: "2017-06-30", perDiem: 300 },
-  { id: "DR-006", name: "Adwoa Darko",   phone: "+233-26-789-0123", license: "GH-DL-2022-1123", trips: 34,  rating: 4.8, status: "On Trip",  joined: "2022-05-18", perDiem: 200 },
+export const MOCK_STATUS: Array<{ status: string; name: string }> = [
+  { status: "available", name: "Available"},
+  { status: "assigned", name: "Assigned" },
+  { status: "in_transit", name: "In Transit / On Trip" },
+  { status: "loading", name: "Loading / Unloading"},
+  { status: "maintenance", name: "Maintenance" },
+  { status: "reserved", name: "Reserved / Scheduled" },
 ];
 
-export const MOCK_VEHICLES: Vehicle[] = [
-  { id: "VH-001", plate: "GR-2341-23", type: "40ft Trailer", driver: "Kwame Mensah",  driverId: "DR-001", status: "On Trip",    odometer: 128450, fuel: "Diesel", year: 2023, make: "Mercedes", model: "Actros" },
-  { id: "VH-002", plate: "GR-8821-22", type: "20ft Rigid",   driver: "Kofi Boateng",  driverId: "DR-002", status: "On Trip",    odometer: 98230,  fuel: "Diesel", year: 2022, make: "MAN",      model: "TGS"    },
-  { id: "VH-003", plate: "GW-1102-24", type: "40ft Trailer", driver: "Yaw Asante",    driverId: "DR-003", status: "Available",  odometer: 34120,  fuel: "Diesel", year: 2024, make: "Volvo",    model: "FH16"   },
-  { id: "VH-004", plate: "GR-4490-23", type: "30ft Trailer", driver: "Ama Serwaa",    driverId: "DR-004", status: "On Trip",    odometer: 76540,  fuel: "Diesel", year: 2023, make: "DAF",      model: "XF"     },
-  { id: "VH-005", plate: "GR-3312-22", type: "40ft Trailer", driver: "Kojo Frimpong", driverId: "DR-005", status: "On Trip",    odometer: 112300, fuel: "Diesel", year: 2022, make: "Scania",   model: "R500"   },
-  { id: "VH-006", plate: "GW-9901-24", type: "30ft Rigid",   driver: "Adwoa Darko",   driverId: "DR-006", status: "On Trip",    odometer: 21900,  fuel: "Diesel", year: 2024, make: "Mercedes", model: "Actros" },
-  { id: "VH-007", plate: "GR-7723-23", type: "40ft Trailer", driver: "Fiifi Mensah",  driverId: null,     status: "Maintenance",odometer: 145600, fuel: "Diesel", year: 2023, make: "MAN",      model: "TGX"    },
-  { id: "VH-008", plate: "GR-5541-22", type: "30ft Trailer", driver: "Nana Ama",      driverId: null,     status: "Available",  odometer: 89070,  fuel: "Diesel", year: 2022, make: "DAF",      model: "CF"     },
+export const MOCK_FUEL_TYPES: Array<{ type: string; name: string }> = [
+  { type: "diesel", name: "Diesel"},
+  { type: "petrol", name: "Petrol" },
+  { type: "electric", name: "Electric" },
 ];
 
 export const INITIAL_TRIPS: Trip[] = [
@@ -61,9 +54,3 @@ export const INITIAL_EXPENSES: Expense[] = [
   { id: "EXP-002", type: "Per Diem",    vehicleId: "VH-001", vehicle: "GR-2341-23", driverId: "DR-001", driver: "Kwame Mensah", tripId: "TRP-001", amount: 250,  date: "2025-02-28", time: "06:00", odometer: null,   odometerAfter: null,   litres: null, unitPrice: null, station: null,         receipt: "PD-2802-KM", notes: "Daily allowance",                   authorised: true,  authorisedBy: "Ama Korantema", secondWitness: "",                    gpsConfirmed: false },
   { id: "EXP-003", type: "Maintenance", vehicleId: "VH-007", vehicle: "GR-7723-23", driverId: null,     driver: "—",           tripId: null,      amount: 3400, date: "2025-02-26", time: "10:00", odometer: 145600, odometerAfter: null,   litres: null, unitPrice: null, station: null,         receipt: "INV-0234",   notes: "Brake pad replacement – both axles", authorised: false, authorisedBy: "",              secondWitness: "Yaw Darko – Finance", gpsConfirmed: false },
 ];
-
-export const DEMO_USERS: { admin: AdminUser; super_admin: AdminUser; customer: CustomerUser } = {
-  admin:    { role: "admin",    fullName: "Ama Korantema", id: null,          phone: "0244000000" },
-  super_admin: { role: "super_admin", fullName: "Ama Korantema", id: null,          phone: "0244000000" },
-  customer: { role: "customer", name: "Patricia Osei", company: "Nestlé Ghana", customerId: "CUST-002", phone: "0302745500" },
-};

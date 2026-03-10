@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
 import { cardBg, tx } from "@/lib/utils";
-import { INITIAL_TRIPS, MOCK_VEHICLES, MOCK_ROUTES } from "@/lib/data";
+import { INITIAL_TRIPS, MOCK_ROUTES } from "@/lib/data";
 import { CONTAINER_TYPES, PICKUP_POINTS, TRIP_STEPS } from "@/lib/constants";
 import Badge from "@/components/ui/Badge";
 import TripProgress from "@/components/ui/TripProgress";
@@ -11,12 +11,12 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import InfoBox from "@/components/ui/InfoBox";
 import Divider from "@/components/ui/Divider";
 import { FieldSelect, FieldInput, FieldTextarea } from "@/components/ui/FormFields";
-import type { CustomerUser, Trip } from "@/types";
+import type { Trip, UserAccount, Vehicle } from "@/types";
 
 type CustomerTab = "dashboard" | "mytrips" | "vehicles" | "booking";
 
 interface CustomerPortalProps {
-  user: CustomerUser;
+  user: UserAccount;
   onLogout: () => void;
 }
 
@@ -31,9 +31,10 @@ export default function CustomerPortal({ user, onLogout }: CustomerPortalProps) 
   const { dark } = useTheme();
   const [tab, setTab] = useState<CustomerTab>("dashboard");
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
 
-  const myTrips = INITIAL_TRIPS.filter((t) => t.customerId === user.customerId);
-  const availVehicles = MOCK_VEHICLES.filter((v) => v.status === "Available");
+  const myTrips = INITIAL_TRIPS.filter((t) => t.customerId === user.id);
+  const availVehicles = vehicles.filter((v) => v.status === "Available");
   const activeTrips = myTrips.filter(
     (t) => t.status !== "Cancelled" && t.status !== "Back at Base"
   );
@@ -110,7 +111,7 @@ export default function CustomerPortal({ user, onLogout }: CustomerPortalProps) 
             style={{ background: "linear-gradient(135deg,#3b82f6,#2563eb)" }}
             className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm"
           >
-            {user.name.split(" ").map((n) => n[0]).join("")}
+            {user.fullName.split(" ").map((n) => n[0]).join("")}
           </div>
           <button
             onClick={onLogout}
@@ -133,10 +134,10 @@ export default function CustomerPortal({ user, onLogout }: CustomerPortalProps) 
           <div className="space-y-6 max-w-5xl mx-auto">
             <div>
               <h1 style={{ color: dark ? "#fff" : "#0f172a" }} className="text-2xl font-black">
-                Good morning, {user.name.split(" ")[0]} 👋
+                Good morning, {user.fullName.split(" ")[0]} 👋
               </h1>
               <p style={{ color: tx(dark).secondary }} className="text-sm mt-1">
-                {user.company} shipments overview
+                {/* {user.fu} shipments overview */}
               </p>
             </div>
 
@@ -317,9 +318,9 @@ export default function CustomerPortal({ user, onLogout }: CustomerPortalProps) 
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <div className="text-emerald-500 font-bold text-lg font-mono">{v.plate}</div>
+                      <div className="text-emerald-500 font-bold text-lg font-mono">{v.registrationNumber}</div>
                       <div style={{ color: tx(dark).muted }} className="text-xs">
-                        {v.year} {v.make} {v.model}
+                        {v.manufactureYear} {v.make} {v.model}
                       </div>
                     </div>
                     <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2 py-0.5 rounded-full font-semibold">
@@ -330,10 +331,10 @@ export default function CustomerPortal({ user, onLogout }: CustomerPortalProps) 
                     <span className="text-4xl">🚛</span>
                     <div>
                       <div style={{ color: dark ? "#fff" : "#0f172a" }} className="font-bold">
-                        {v.type}
+                        {/* {v.type} */}
                       </div>
                       <div style={{ color: tx(dark).muted }} className="text-xs">
-                        Fuel: {v.fuel}
+                        Fuel: {v.fuelType}
                       </div>
                     </div>
                   </div>
@@ -381,7 +382,7 @@ export default function CustomerPortal({ user, onLogout }: CustomerPortalProps) 
               >
                 <div className="text-blue-400 font-semibold text-sm mb-1">Booking for</div>
                 <div style={{ color: dark ? "#fff" : "#0f172a" }} className="font-bold">
-                  {user.company}
+                  {/* {user.company} */}
                 </div>
               </div>
 

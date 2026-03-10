@@ -8,6 +8,19 @@ import { FieldInput, FieldSelect } from "@/components/ui/FormFields";
 import Divider from "@/components/ui/Divider";
 import SectionHead from "@/components/ui/SectionHead";
 import type { Route } from "@/types";
+import axiosInstance from "@/lib/axios";
+
+interface FormRequest {
+  origin?: string;
+  destination?: string;
+  routeType?: string;
+  distanceKm?: number;
+  price20ft?: number;
+  price230ft?: number;
+  price40ft?: number;
+  priceDouble?: number;
+  crossBorderFee?: number;
+}
 
 interface AddRouteFormProps {
   onSave: (route: Route) => void;
@@ -18,33 +31,45 @@ const ORIGINS = ["Tema Port", "Takoradi Port", "Accra Depot", "Kumasi Yard"];
 
 export default function AddRouteForm({ onSave, onClose }: AddRouteFormProps) {
   const { dark } = useTheme();
-  const [from, setFrom] = useState("Tema Port");
-  const [to, setTo] = useState("");
-  const [distance, setDistance] = useState("");
+  const [formInputs, setFormInputs] = useState<FormRequest>({
+    origin: "",
+    destination: "",
+    routeType: "",
+    distanceKm: undefined,
+    price20ft: undefined,
+    price230ft: undefined,
+    price40ft: undefined,
+    priceDouble: undefined,
+    crossBorderFee: undefined,
+  });
   const [crossBorder, setCrossBorder] = useState(false);
-  const [p20, setP20] = useState("");
-  const [p30, setP30] = useState("");
-  const [p40, setP40] = useState("");
-  const [pD, setPD] = useState("");
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const allFilled = !!(to && distance && p20 && p30 && p40 && pD);
+  const allFilled = !!(formInputs.origin && formInputs.destination && formInputs.distanceKm && formInputs.price20ft && formInputs.price230ft && formInputs.price40ft && formInputs.priceDouble);
 
-  const handleSave = () => {
-    const route: Route = {
-      id: "RT-" + Date.now().toString(36).slice(-4).toUpperCase(),
-      from,
-      to,
-      distance: parseFloat(distance),
-      price20ft: parseFloat(p20),
-      price30ft: parseFloat(p30),
-      price40ft: parseFloat(p40),
-      priceDouble: parseFloat(pD),
-      crossBorder,
-    };
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      // api call
+    const res = await axiosInstance.post<Route>("/api/v1/routes", {
+      "origin": formInputs.origin,
+      "destination": formInputs.destination,
+      "distance_km": formInputs.distanceKm,
+      "price_20ft": formInputs.price20ft,
+      "price_30ft": formInputs.price230ft,
+      "price_40ft": formInputs.price40ft,
+      "price_double": formInputs.priceDouble,
+    });
+    const route = res.data;
     onSave(route);
     setSaved(true);
     setTimeout(onClose, 800);
+    } catch (error) {
+      
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (saved) {
@@ -64,8 +89,8 @@ export default function AddRouteForm({ onSave, onClose }: AddRouteFormProps) {
         <FieldSelect
           label="Origin"
           req
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
+          value={formInputs.origin}
+          onChange={(e) => setFormInputs({ ...formInputs, origin: e.target.value })}
           options={ORIGINS}
         />
         <div>
@@ -76,8 +101,8 @@ export default function AddRouteForm({ onSave, onClose }: AddRouteFormProps) {
             Destination <span className="text-amber-500">*</span>
           </label>
           <input
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
+            value={formInputs.destination}
+            onChange={(e) => setFormInputs({ ...formInputs, destination: e.target.value })}
             placeholder="Type or select…"
             list="dest-list"
             className="w-full rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40"
@@ -97,8 +122,8 @@ export default function AddRouteForm({ onSave, onClose }: AddRouteFormProps) {
           req
           type="number"
           placeholder="e.g. 270"
-          value={distance}
-          onChange={(e) => setDistance(e.target.value)}
+          value={formInputs.distanceKm || ""}
+          onChange={(e) => setFormInputs({ ...formInputs, distanceKm: Number(e.target.value) })}
         />
         {/* Cross-border toggle */}
         <div className="flex items-end pb-1">
@@ -136,11 +161,11 @@ export default function AddRouteForm({ onSave, onClose }: AddRouteFormProps) {
       <div className="grid grid-cols-2 gap-4">
         {(
           [
-            ["20ft Container", p20, setP20],
-            ["30ft Container", p30, setP30],
-            ["40ft Container", p40, setP40],
-            ["Double Container", pD, setPD],
-          ] as [string, string, (v: string) => void][]
+            ["20ft Container", formInputs.price20ft, (e: string) => setFormInputs({ ...formInputs, origin: e })],
+            ["30ft Container", formInputs.price230ft, (e: string) => setFormInputs({ ...formInputs, origin: e })],
+            ["40ft Container", formInputs.price40ft, (e: string) => setFormInputs({ ...formInputs, origin: e })],
+            ["Double Container", formInputs.priceDouble, (e: string) => setFormInputs({ ...formInputs, origin: e })],
+          ] as unknown as [string, string, (v: string) => void][]
         ).map(([lbl, val, setter]) => (
           <FieldInput
             key={lbl}
@@ -155,6 +180,18 @@ export default function AddRouteForm({ onSave, onClose }: AddRouteFormProps) {
         ))}
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <FieldInput
+            label='Cross-border Fee'
+            req
+            prefix="₵"
+            type="number"
+            placeholder="0"
+            value={formInputs.crossBorderFee}
+            onChange={(e) => setFormInputs({ ...formInputs, crossBorderFee: Number(e.target.value) })}
+          />
+      </div>
+
       {/* Live preview */}
       {allFilled && (
         <div
@@ -165,23 +202,23 @@ export default function AddRouteForm({ onSave, onClose }: AddRouteFormProps) {
           className="rounded-xl p-4"
         >
           <div className="text-amber-500 font-bold text-xs mb-2">
-            Preview: {from} → {to} · {distance} km {crossBorder ? "🌍" : ""}
+            Preview: {formInputs.origin} → {formInputs.destination} · {formInputs.distanceKm} km {crossBorder ? "🌍" : ""}
           </div>
           <div className="grid grid-cols-4 gap-2 text-center">
             {(
               [
-                ["20ft", p20],
-                ["30ft", p30],
-                ["40ft", p40],
-                ["Double", pD],
-              ] as [string, string][]
+                ["20ft", formInputs.price20ft],
+                ["30ft", formInputs.price230ft],
+                ["40ft", formInputs.price40ft],
+                ["Double", formInputs.priceDouble],
+              ] as [string, number][]
             ).map(([k, v]) => (
               <div key={k}>
                 <div style={{ color: tx(dark).muted }} className="text-xs">
                   {k}
                 </div>
                 <div className="text-emerald-500 font-black text-sm">
-                  ₵{parseFloat(v).toLocaleString()}
+                  ₵{v}
                 </div>
               </div>
             ))}
